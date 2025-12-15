@@ -1,6 +1,7 @@
 import asyncio
 import threading
 from binance import AsyncClient, BinanceSocketManager
+from analytics.statistics import add_tick
 
 latest_ticks = {}
 lock = threading.Lock()
@@ -34,7 +35,7 @@ async def _socket_loop(symbols):
                     "qty": qty,
                     "timestamp": ts
                 }
-
+            add_tick(symbol, price, qty, ts)
 
 def start_binance_socket(symbols):
     """
