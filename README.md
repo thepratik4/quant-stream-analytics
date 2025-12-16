@@ -18,7 +18,7 @@
 ### 1️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/<your-username>/quant-analytics-dashboard.git
+git clone https://github.com/thepratik4/quant-stream-analytics.git
 cd quant-analytics-dashboard
 ```
 
