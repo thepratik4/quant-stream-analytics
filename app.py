@@ -1,5 +1,7 @@
 from dash import Dash, html, dcc, Input, Output
 import dash_bootstrap_components as dbc
+import pandas as pd
+from datetime import datetime
 from ingestion.binance_ws import start_binance_socket, latest_ticks, lock
 import plotly.graph_objects as go
 from analytics.statistics import resample_ohlc
@@ -9,12 +11,17 @@ from analytics.pairs import (
     compute_zscore,
     rolling_correlation
 )
+from storage.db import init_db, insert_ohlc
 
 
 # Start WebSocket ingestion
 # Start WebSocket ingestion
 SYMBOLS = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "ADAUSDT", "DOGEUSDT", "AVAXUSDT"]
+SYMBOLS = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "ADAUSDT", "DOGEUSDT", "AVAXUSDT"]
 start_binance_socket(SYMBOLS)
+
+# Initialize Database
+init_db()
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
 
@@ -137,15 +144,38 @@ def update_dashboard(n, sym1, sym2, timeframe):
     # -------- Live prices --------
     rows = []
     with lock:
-        for symbol, data in latest_ticks.items():
+        # Sort by timestamp descending
+        sorted_ticks = sorted(latest_ticks.items(), key=lambda item: item[1]['timestamp'], reverse=True)
+        
+        for symbol, data in sorted_ticks:
+            price_fmt = f"${data['price']:,.2f}"
+            qty_fmt = f"{data['qty']:.4f}"
+            
+            # Convert timestamp (assuming ms)
+            ts_ms = data.get('timestamp')
+            time_str = "N/A"
+            if ts_ms:
+                dt_obj = datetime.fromtimestamp(ts_ms / 1000.0)
+                time_str = dt_obj.strftime("%H:%M:%S")
+
             rows.append(
-                html.Div(
-                    f"{symbol}: {data['price']:.2f}",
-                    className="live-price-item"
-                )
+                html.Tr([
+                    html.Td(symbol, style={"fontWeight": "bold", "color": "#00ADB5"}),
+                    html.Td(price_fmt),
+                    html.Td(qty_fmt),
+                    html.Td(time_str, style={"color": "#888"})
+                ])
             )
 
-    live_prices = rows if rows else "Waiting for live data..."
+    if rows:
+        live_prices = html.Table([
+            html.Thead(
+                html.Tr([html.Th("Symbol"), html.Th("Price"), html.Th("Qty"), html.Th("Time")])
+            ),
+            html.Tbody(rows)
+        ], className="table table-dark table-sm table-hover mb-0", style={"fontSize": "0.9rem"})
+    else:
+        live_prices = "Waiting for live data..."
 
     # Empty placeholders
     empty_fig = go.Figure()
@@ -158,6 +188,13 @@ def update_dashboard(n, sym1, sym2, timeframe):
 
     if df1.empty or df2.empty:
         return alert_div, live_prices, empty_table, empty_fig, empty_table, empty_fig, empty_fig, empty_fig
+
+    # Persist data asynchronously-ish (SQLite is fast enough for this scale)
+    try:
+        insert_ohlc(df1, sym1, timeframe)
+        insert_ohlc(df2, sym2, timeframe)
+    except Exception as e:
+        print(f"DB Error: {e}")
 
     close1 = df1["close"]
     close2 = df2["close"]
