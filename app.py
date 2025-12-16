@@ -24,6 +24,24 @@ start_binance_socket(SYMBOLS)
 # Initialize Database
 init_db()
 
+def get_coin_icon(symbol):
+    """
+    Get icon URL from GitHub repository
+    """
+    base = symbol.lower().replace("usdt", "")
+    return f"https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/32/icon/{base}.png"
+
+# Generate rich options for dropdowns
+SYMBOL_OPTIONS = []
+for s in SYMBOLS:
+    SYMBOL_OPTIONS.append({
+        "label": html.Div([
+            html.Img(src=get_coin_icon(s), style={"height": 20, "marginRight": 10}),
+            html.Span(s)
+        ], style={"display": "flex", "alignItems": "center"}),
+        "value": s
+    })
+
 app = Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
 
 app.layout = dbc.Container([
@@ -39,7 +57,7 @@ app.layout = dbc.Container([
                 html.Label("Symbol 1"),
                 dcc.Dropdown(
                     id="symbol-1-dropdown",
-                    options=[{"label": s, "value": s} for s in SYMBOLS],
+                    options=SYMBOL_OPTIONS,
                     value="BTCUSDT",
                     clearable=False
                 )
@@ -50,7 +68,7 @@ app.layout = dbc.Container([
                 html.Label("Symbol 2"),
                 dcc.Dropdown(
                     id="symbol-2-dropdown",
-                    options=[{"label": s, "value": s} for s in SYMBOLS],
+                    options=SYMBOL_OPTIONS,
                     value="ETHUSDT",
                     clearable=False
                 )
@@ -158,10 +176,16 @@ def update_dashboard(n, sym1, sym2, timeframe):
             if ts_ms:
                 dt_obj = datetime.fromtimestamp(ts_ms / 1000.0)
                 time_str = dt_obj.strftime("%H:%M:%S")
+            
+            # Icon
+            icon_url = get_coin_icon(symbol)
 
             rows.append(
                 html.Tr([
-                    html.Td(symbol, style={"fontWeight": "bold", "color": "#00ADB5"}),
+                    html.Td([
+                        html.Img(src=icon_url, style={"height": "20px", "marginRight": "10px"}),
+                        symbol
+                    ], style={"fontWeight": "bold", "color": "#00ADB5", "display": "flex", "alignItems": "center"}),
                     html.Td(price_fmt),
                     html.Td(qty_fmt),
                     html.Td(time_str, style={"color": "#888"})
@@ -350,5 +374,8 @@ def update_dashboard(n, sym1, sym2, timeframe):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8050))
     app.run(host="0.0.0.0", port=port)
+    #app.run(debug=True)
 
+# port = int(os.environ.get("PORT", 8050))
+#     app.run(host="0.0.0.0", port=port)
 

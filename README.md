@@ -1,7 +1,7 @@
 # Quant Analytics Dashboard (Real-Time Pairs Trading Analytics)
 
 ## How to Run
-
+https://quant-stream-analytics.onrender.com/
 ### 1️⃣ Setup environment
 
 ```bash
