@@ -1,4 +1,4 @@
-from dash import Dash, html, dcc, Input, Output
+from dash import Dash, html, dcc, Input, Output, State
 import dash_bootstrap_components as dbc
 import pandas as pd
 import os
@@ -12,7 +12,8 @@ from analytics.pairs import (
     compute_zscore,
     rolling_correlation
 )
-from storage.db import init_db, insert_ohlc
+
+from storage.db import init_db, insert_ohlc, fetch_ohlc
 
 
 # Start WebSocket ingestion
@@ -88,7 +89,16 @@ app.layout = dbc.Container([
                     clearable=False
                 )
             ])
-        ], width=12, md=4),
+        ], width=12, md=3),
+        dbc.Col([
+             html.Div([
+                html.Label("Export"),
+                html.Div([
+                    dbc.Button("Download CSV", id="btn-download-csv", color="primary", className="w-100"),
+                    dcc.Download(id="download-dataframe-csv")
+                ])
+            ])
+        ], width=12, md=1),
     ], className="glass-card control-bar"),
 
     # ---- Alerts ----
@@ -369,6 +379,34 @@ def update_dashboard(n, sym1, sym2, timeframe):
     )
 
 
+
+
+
+@app.callback(
+    Output("download-dataframe-csv", "data"),
+    Input("btn-download-csv", "n_clicks"),
+    State("symbol-1-dropdown", "value"),
+    State("symbol-2-dropdown", "value"),
+    State("timeframe-dropdown", "value"),
+    prevent_initial_call=True,
+)
+def func(n_clicks, sym1, sym2, timeframe):
+    # Fetch data for both symbols
+    df1 = fetch_ohlc(sym1, timeframe)
+    df2 = fetch_ohlc(sym2, timeframe)
+
+    # Combine
+    df_final = pd.concat([df1, df2])
+    
+    # Sort
+    if not df_final.empty:
+        df_final.sort_values(by=["timestamp", "symbol"], inplace=True)
+
+    return dcc.send_data_frame(
+        df_final.to_csv,
+        f"ohlc_{sym1}_{sym2}_{timeframe}.csv",
+        index=False
+    )
 
 
 if __name__ == "__main__":
