@@ -1,7 +1,13 @@
 # Quant Analytics Dashboard (Real-Time Pairs Trading Analytics)
 
-## How to Run
+## Live software running on render as well (Singapore time as render server running on Singapore db - local running works on Indian time)
+
 https://quant-stream-analytics.onrender.com/
+
+
+
+## How to Run
+
 ### 1️⃣ Setup environment
 
 ```bash

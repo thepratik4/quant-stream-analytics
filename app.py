@@ -111,7 +111,7 @@ app.layout = dbc.Container([
         # Live Prices
         dbc.Col([
             html.Div([
-                html.H4("Live Feed", className="mb-3"),
+                html.H4("Live Feed ", className="mb-3"),
                 html.Div(id="live-prices")
             ], className="glass-card", style={"height": "100%"})
         ], width=12, md=4),
