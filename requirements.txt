@@ -1,0 +1,17 @@
+# Core framework
+dash>=2.15.0
+plotly>=5.18.0
+
+# Data handling
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Quant analytics
+statsmodels>=0.14.0
+scipy>=1.10.0
+
+# Binance WebSocket client
+python-binance>=1.0.19
+
+# Async support (used by python-binance internally)
+aiohttp>=3.8.0
