@@ -69,3 +69,13 @@ def insert_ohlc(df: pd.DataFrame, symbol: str, timeframe: str):
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ''', records)
         conn.commit()
+
+def fetch_ohlc(symbol: str, timeframe: str) -> pd.DataFrame:
+    """
+    Fetch OHLC data from the database.
+    """
+    query = "SELECT * FROM ohlc_data WHERE symbol = ? AND timeframe = ? ORDER BY timestamp"
+    with get_db_connection() as conn:
+        df = pd.read_sql_query(query, conn, params=(symbol, timeframe))
+    
+    return df
