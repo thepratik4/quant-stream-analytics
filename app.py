@@ -1,4 +1,5 @@
 from dash import Dash, html, dcc, Input, Output
+import dash_bootstrap_components as dbc
 from ingestion.binance_ws import start_binance_socket, latest_ticks, lock
 import plotly.graph_objects as go
 from analytics.statistics import resample_ohlc
@@ -15,76 +16,106 @@ from analytics.pairs import (
 SYMBOLS = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "ADAUSDT", "DOGEUSDT", "AVAXUSDT"]
 start_binance_socket(SYMBOLS)
 
-app = Dash(__name__)
+app = Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
 
-app.layout = html.Div([
-    html.H1("Quant Analytics Dashboard"),
+app.layout = dbc.Container([
+    # ---- Header ----
+    dbc.Row([
+        dbc.Col(html.H1("Quant Analytics Dashboard", className="text-center mb-4"), width=12)
+    ], className="mt-4"),
+
+    # ---- Controls ----
+    dbc.Row([
+        dbc.Col([
+            html.Div([
+                html.Label("Symbol 1"),
+                dcc.Dropdown(
+                    id="symbol-1-dropdown",
+                    options=[{"label": s, "value": s} for s in SYMBOLS],
+                    value="BTCUSDT",
+                    clearable=False
+                )
+            ])
+        ], width=12, md=4),
+        dbc.Col([
+            html.Div([
+                html.Label("Symbol 2"),
+                dcc.Dropdown(
+                    id="symbol-2-dropdown",
+                    options=[{"label": s, "value": s} for s in SYMBOLS],
+                    value="ETHUSDT",
+                    clearable=False
+                )
+            ])
+        ], width=12, md=4),
+        dbc.Col([
+            html.Div([
+                html.Label("Timeframe"),
+                dcc.Dropdown(
+                    id="timeframe-dropdown",
+                    options=[
+                        {"label": "1 Second", "value": "1s"},
+                        {"label": "1 Minute", "value": "1min"},
+                        {"label": "5 Minutes", "value": "5min"}
+                    ],
+                    value="1s",
+                    clearable=False
+                )
+            ])
+        ], width=12, md=4),
+    ], className="glass-card control-bar"),
+
+    # ---- Alerts ----
+    dbc.Row([
+        dbc.Col(html.Div(id="alert-box"), width=12)
+    ]),
+
+    # ---- Top Section: Prices & Stats ----
+    dbc.Row([
+        # Live Prices
+        dbc.Col([
+            html.Div([
+                html.H4("Live Feed", className="mb-3"),
+                html.Div(id="live-prices")
+            ], className="glass-card", style={"height": "100%"})
+        ], width=12, md=4),
+
+        # Pair Stats
+        dbc.Col([
+            html.Div([
+                html.H4("Pair Statistics", className="mb-3"),
+                html.Div(id="pair-stats-table")
+            ], className="glass-card", style={"height": "100%"})
+        ], width=12, md=8),
+    ]),
+
+    # ---- Main Chart ----
+    dbc.Row([
+        dbc.Col([
+            html.Div([
+                dcc.Graph(id="price-chart", style={"height": "500px"})
+            ], className="glass-card")
+        ], width=12)
+    ]),
     
-    html.Div([
-        html.Div([
-            html.Label("Symbol 1"),
-            dcc.Dropdown(
-                id="symbol-1-dropdown",
-                options=[{"label": s, "value": s} for s in SYMBOLS],
-                value="BTCUSDT",
-                clearable=False
-            )
-        ], style={"display": "inline-block", "width": "200px", "marginRight": "20px"}),
+    # ---- Analytics Charts ----
+    dbc.Row([
+        dbc.Col(dcc.Graph(id="spread-chart"), width=12, lg=4),
+        dbc.Col(dcc.Graph(id="zscore-chart"), width=12, lg=4),
+        dbc.Col(dcc.Graph(id="corr-chart"), width=12, lg=4),
+    ]),
 
-        html.Div([
-            html.Label("Symbol 2"),
-            dcc.Dropdown(
-                id="symbol-2-dropdown",
-                options=[{"label": s, "value": s} for s in SYMBOLS],
-                value="ETHUSDT",
-                clearable=False
-            )
-        ], style={"display": "inline-block", "width": "200px", "marginRight": "20px"}),
-
-        html.Div([
-            html.Label("Timeframe"),
-            dcc.Dropdown(
-                id="timeframe-dropdown",
-                options=[
-                    {"label": "1 Second", "value": "1s"},
-                    {"label": "1 Minute", "value": "1min"},
-                    {"label": "5 Minutes", "value": "5min"}
-                ],
-                value="1s",
-                clearable=False
-            )
-        ], style={"display": "inline-block", "width": "200px"}),
-    ], style={"padding": "20px", "borderBottom": "1px solid #ddd"}),
-
-    html.Div(
-        id="alert-box",
-        style={
-            "padding": "10px",
-            "marginBottom": "20px",
-            "fontWeight": "bold",
-            "fontSize": "18px"
-        }
-    ),
-
-    html.Div(id="live-prices"),
-
-    dcc.Graph(id="price-chart"),
-    
-    html.Div(id="stats-table"),  # Table for Mean, Std, Min, Max
-    
-    html.H3("Pair Summary Stats", style={"textAlign": "center"}),
-    html.Div(id="pair-stats-table"),
-
-    dcc.Graph(id="spread-chart"),
-    dcc.Graph(id="zscore-chart"),
-    dcc.Graph(id="corr-chart"),
-
+    # Hidden Interval
     dcc.Interval(
         id="interval",
-        interval=2000,  # 2 seconds (safer for analytics)
+        interval=2000,
         n_intervals=0
-    )
-])
+    ),
+
+    # Hidden Div for stats table (legacy or moved)
+    html.Div(id="stats-table", style={"display": "none"}) 
+
+], fluid=True, className="dashboard-container")
 
 
 @app.callback(
@@ -108,8 +139,9 @@ def update_dashboard(n, sym1, sym2, timeframe):
     with lock:
         for symbol, data in latest_ticks.items():
             rows.append(
-                html.P(
-                    f"{symbol} | Price: {data['price']} | Qty: {data['qty']}"
+                html.Div(
+                    f"{symbol}: {data['price']:.2f}",
+                    className="live-price-item"
                 )
             )
 
@@ -145,7 +177,11 @@ def update_dashboard(n, sym1, sym2, timeframe):
     ))
     price_fig.update_layout(
         title=f"Prices ({timeframe})",
-        yaxis2=dict(overlaying="y", side="right")
+        yaxis2=dict(overlaying="y", side="right"),
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font={"color": "#e0e0e0"}
     )
 
     # -------- Statistics --------
@@ -167,7 +203,7 @@ def update_dashboard(n, sym1, sym2, timeframe):
             html.Tr([html.Th("Symbol"), html.Th("Mean"), html.Th("Std"), html.Th("Min"), html.Th("Max")])
         ),
         html.Tbody(stats)
-    ], style={"width": "50%", "margin": "20px auto", "border": "1px solid black", "textAlign": "center"})
+    ], className="table table-dark table-hover mb-0")
 
     # -------- Analytics --------
     hedge_ratio = compute_hedge_ratio(close1, close2)
@@ -199,7 +235,7 @@ def update_dashboard(n, sym1, sym2, timeframe):
             html.Tr([html.Td("Z-Score (Last)"), html.Td(f"{last_z:.2f}")]),
             html.Tr([html.Td("Correlation (Last 30)"), html.Td(f"{last_corr:.2f}")]),
         ])
-    ], style={"width": "50%", "margin": "20px auto", "border": "1px solid black", "textAlign": "center"})
+    ], className="table table-borderless text-light mb-0")
 
     # -------- Spread chart --------
     spread_fig = go.Figure()
@@ -208,7 +244,12 @@ def update_dashboard(n, sym1, sym2, timeframe):
         y=spread,
         name="Spread"
     ))
-    spread_fig.update_layout(title=f"Spread (Hedge Ratio: {hedge_ratio:.4f})")
+    spread_fig.update_layout(
+        title=f"Spread (Hedge Ratio: {hedge_ratio:.4f})",
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)"
+    )
 
     # -------- Z-score chart --------
     z_fig = go.Figure()
@@ -219,7 +260,12 @@ def update_dashboard(n, sym1, sym2, timeframe):
     ))
     z_fig.add_hline(y=2, line_dash="dash", line_color="red")
     z_fig.add_hline(y=-2, line_dash="dash", line_color="red")
-    z_fig.update_layout(title="Z-score")
+    z_fig.update_layout(
+        title="Z-score",
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)"
+    )
 
     # -------- Alert logic --------
     alert_message = ""
@@ -229,13 +275,11 @@ def update_dashboard(n, sym1, sym2, timeframe):
     if not z_clean.empty:
         latest_z = z_clean.iloc[-1]
         if latest_z > 2:
-            alert_message = f"🔴 Overbought Alert: Z-score = {latest_z:.2f}"
-            alert_style = {"color": "red", "fontWeight": "bold"}
+            alert_message = dbc.Alert(f"🔴 Overbought Alert: Z-score = {latest_z:.2f}", color="danger")
         elif latest_z < -2:
-            alert_message = f"🟢 Oversold Alert: Z-score = {latest_z:.2f}"
-            alert_style = {"color": "green", "fontWeight": "bold"}
+            alert_message = dbc.Alert(f"🟢 Oversold Alert: Z-score = {latest_z:.2f}", color="success")
 
-    alert_div = html.Div(alert_message, style=alert_style)
+    alert_div = html.Div(alert_message)
 
     # -------- Correlation chart --------
     corr_fig = go.Figure()
@@ -244,7 +288,12 @@ def update_dashboard(n, sym1, sym2, timeframe):
         y=corr,
         name="Rolling Correlation"
     ))
-    corr_fig.update_layout(title="Rolling Correlation")
+    corr_fig.update_layout(
+        title="Rolling Correlation",
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)"
+    )
 
     return (
         alert_div,

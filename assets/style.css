@@ -1,0 +1,117 @@
+:root {
+    --bg-color: #121212;
+    --card-bg: rgba(30, 30, 30, 0.7);
+    --text-color: #e0e0e0;
+    --accent-color: #00ADB5;
+    --positive: #00FF00;
+    --negative: #FF0000;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.dashboard-container {
+    padding-top: 20px;
+    padding-bottom: 50px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.glass-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.control-bar {
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1000;
+}
+
+/* Dropdown styling for dark mode */
+.Select-control {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+}
+
+.Select-menu-outer {
+    background-color: #222 !important;
+    border: 1px solid #444 !important;
+}
+
+.Select-value-label {
+    color: white !important;
+}
+
+.Select-input>input {
+    color: white !important;
+}
+
+/* Stats Table Styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+th {
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    color: var(--accent-color);
+    font-weight: 700;
+}
+
+td {
+    font-size: 0.95rem;
+}
+
+.live-price-item {
+    font-family: 'Courier New', monospace;
+    font-size: 1.1rem;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
