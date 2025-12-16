@@ -1,28 +1,58 @@
-# Quant Analytics Dashboard (Real-Time Pairs Trading Analytics)
 
-## Live software  (Singapore time as render server hosted on Singapore db - local host works on Indian time)
+# Quant Analytics Dashboard
 
-https://quant-stream-analytics.onrender.com/
+**Real-Time Pairs Trading & Market Analytics**
 
+## 🌐 Live Demo
 
+> **Hosted on Render (Singapore region)**
+> ⚠️ *Due to Binance IP-based restrictions, live WebSocket data may be unavailable on cloud deployments. Full real-time functionality works when run locally.*
 
-## How to Run
+🔗 **Live URL:**
+[https://quant-stream-analytics.onrender.com/](https://quant-stream-analytics.onrender.com/)
 
-### 1️⃣ Setup environment
+---
+
+## 🚀 Getting Started (From Scratch)
+
+### 1️⃣ Clone the Repository
+
+```bash
+git clone https://github.com/<your-username>/quant-analytics-dashboard.git
+cd quant-analytics-dashboard
+```
+
+---
+
+### 2️⃣ Create & Activate Virtual Environment
 
 ```bash
 python -m venv venv
-# Windows:
+```
+
+**Windows**
+
+```bash
 venv\Scripts\activate
 ```
 
-### 2️⃣ Install dependencies
+**Linux / macOS**
+
+```bash
+source venv/bin/activate
+```
+
+---
+
+### 3️⃣ Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3️⃣ Run the app
+---
+
+### 4️⃣ Run the Application
 
 ```bash
 python app.py
@@ -33,6 +63,9 @@ Open in browser:
 ```
 http://127.0.0.1:8050
 ```
+
+---
+
 
 
 ## Overview
