@@ -251,12 +251,4 @@ The goal was to build a **credible prototype** of a real-time analytics system t
 * Alerts: ✔ complete
 * Architecture clarity: ✔ complete
 
----
 
-If you want, next I can:
-
-* Write a **short submission email**
-* Describe the **architecture diagram boxes for draw.io**
-* Do a **final polish checklist** before submission
-
-Just tell me 👍
