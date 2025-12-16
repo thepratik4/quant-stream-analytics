@@ -1,6 +1,6 @@
 # Quant Analytics Dashboard (Real-Time Pairs Trading Analytics)
 
-## Live software running on render as well (Singapore time as render server running on Singapore db - local running works on Indian time)
+## Live software  (Singapore time as render server hosted on Singapore db - local host works on Indian time)
 
 https://quant-stream-analytics.onrender.com/
 
