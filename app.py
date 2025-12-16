@@ -1,6 +1,7 @@
 from dash import Dash, html, dcc, Input, Output
 import dash_bootstrap_components as dbc
 import pandas as pd
+import os
 from datetime import datetime
 from ingestion.binance_ws import start_binance_socket, latest_ticks, lock
 import plotly.graph_objects as go
@@ -347,7 +348,7 @@ def update_dashboard(n, sym1, sym2, timeframe):
 
 
 if __name__ == "__main__":
-
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 8050))
+    app.run(host="0.0.0.0", port=port)
 
 
